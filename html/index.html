@@ -1,0 +1,122 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>pdfix_register logs</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <script src="https://s3.pstatp.com/cdn/expire-1-M/jquery/3.3.1/jquery.min.js"></script>
+    <style>
+        .container {
+            width: 80%;
+            margin: 5% auto 0;
+            background-color: #f0f0f0;
+            padding: 2% 5%;
+            border-radius: 10px
+        }
+        
+        .item{
+            font-size: 16px;
+            color: rgb(36, 36, 36);
+            border-bottom: 1px solid rgb(184, 184, 184);
+            padding: 10px 5px;
+        }
+
+        .tips{
+            margin: 10px 0;
+        }
+
+        .tips>textarea{
+            width: 100%;
+            height:80px;
+            line-height:20px;
+        }
+
+        #r_status{
+            padding: 10px 0;
+            font-size: 15px;
+            color: green;
+        }
+
+    </style>
+    
+</head>
+<body>
+    <div class="container" id="pannel">
+        
+        <div id="r_status">自动刷新 开启 </div>
+        <button id='pannel_button_a' act='auto_refresh'>自动刷新</button>
+        <button id='pannel_button_a' act='stop_auto_refresh'>停止自动刷新</button>
+        <button id='pannel_button_b' act='main/start'>启动</button>
+        <button id='pannel_button_b' act='ths'>查看进程</button>
+        <button id='pannel_button_b' act='sendmail'>发送数据</button>
+    </div>
+    <div class="container" id='log_content'>
+       <!-- <iframe id="iframe1" name="content_frame" marginwidth=0 marginheight=0 width=100% height=100% src="log.txt" frameborder=0></iframe> -->
+       
+    </div>
+</body>
+<script>
+    // var ifm= document.getElementById("iframe1");
+    // ifm.height=document.documentElement.clientHeight - 200;
+
+
+    function getlog(params) {
+        $.get(url='log.txt', 
+            e => {
+                $('#log_content').children().remove()
+                // console.log(e)
+                items = e.split('\n').reverse()
+                items.forEach(element => {
+                    $('#log_content').append(
+                        '<div class="item">'
+                            +element+
+                        '</div>'
+                    )
+                });
+            }
+        )
+    }
+
+    var t = setInterval(getlog, 3000);
+    var interval_f = true;
+
+    $('[id=pannel_button_a]').click( e => {
+        elem = e.target;
+        act = $(elem).attr('act');
+        if (act == 'auto_refresh' && !interval_f) {
+            t = setInterval(getlog, 3000);
+            $('#r_status').text('自动刷新 开启');
+            $('#r_status').css('color', 'green');
+            interval_f = true;
+        } 
+        else if(act == 'stop_auto_refresh' && interval_f)
+        {
+            clearInterval(t)
+            $('#r_status').text('自动刷新 关闭');
+            $('#r_status').css('color', 'red'); 
+            interval_f = false;
+        }
+        console.log(interval_f);
+    })
+
+    $('[id=pannel_button_b]').click( e => {
+        elem = e.target;
+        act = $(elem).attr('act');
+        console.log(act);
+        $.ajax({
+            url: act,
+            type:'GET',
+            contentType: "application/json; charset=utf-8",
+            dataType:'json',//json 返回值类型
+            success:function(result){
+                $('div').remove('.tips')
+                $('#pannel').append(
+                    '<div class="tips"><textarea>' + result + '</textarea></div>'
+                );
+            }
+        });
+    })
+
+
+</script>
+</html>
